@@ -21,6 +21,8 @@ public:
 
 private slots:
     void EnterMsgHandler();
+    void ClickConnectBtn();
+    void ClickDisconnectBtn();
 
 private:
     Ui::MainWindow *ui;

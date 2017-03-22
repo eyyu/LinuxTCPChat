@@ -16,7 +16,10 @@ public:
     void Run();
     void RecvFunc();
     void SendMsg(QString& msg, QString& username);
+    void Connect(QString& serverIP, int port);
+    void Disconnect();
 
+    bool terminated;
     bool connected;
 
 private:
