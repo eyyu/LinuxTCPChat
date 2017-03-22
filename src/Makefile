@@ -2,20 +2,20 @@
 # Declare Variables
 ##################################################
 CPP =/usr/bin/g++
-CPPFLAGS = -std=c++14 -Wall -W -pedantic
+CPPFLAGS = -std=c++14 -Wall -W -pedantic -g
 DEBUG = -g
 SERVEROBJECTS = wrapper.o server.o
 CLIENTOBJECTS = wrapper.o client.o
 SERVEREXECUTABLE = server
 CLIENTEXECUTABLE = client
 EXECUTABLES = $(SERVEREXECUTABLE) $(CLIENTEXECUTABLE)
-CPP_COMP = $(CPP) $(CPPFLAGS) $(DEBUG) -c
-CPP_LOAD = $(CPP) $(CPPFLAGS) $(DEBUG)
+CPP_COMP = $(CPP) $(CPPFLAGS)  -c
+CPP_LOAD = $(CPP) $(CPPFLAGS)
 
 ##################################################
 # Targets
 ##################################################
-all: $(EXECUTABLES)
+all:$(EXECUTABLES)
 
 .c.o:
 	$(CPP_COMP) $*.cpp
@@ -30,7 +30,8 @@ client: $(CLIENTOBJECTS)
 # Clean-up
 ##################################################
 clean:
-	rm $(EXECUTABLES)
 	rm *.o
+	rm -rf *.h.gch
+	rm $(EXECUTABLES)
 cleanobjects:
 	rm *.o

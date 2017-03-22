@@ -10,7 +10,6 @@ public:
 
 private:
   int runserver();
-  const static char * PORT;
   const static int BUFFSIZE = 1024;
   int listenSock;
   char clientMsg[BUFFSIZE];
