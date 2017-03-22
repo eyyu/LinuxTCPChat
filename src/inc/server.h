@@ -5,16 +5,19 @@
 class ChatServer
 {
 public:
-  void show_usage();
-  int run();
+    void show_usage();
+    int run();
 
 private:
-  int runserver();
-  const static int BUFFSIZE = 1024;
-  int listenSock;
-  char clientMsg[BUFFSIZE];
-  fd_set master;
-  int fd_max;
+    const static int BUFFSIZE = 1024;
+
+    int listener;
+    char clientMsg[BUFFSIZE];
+    fd_set master;
+    int fd_max;
+
+    int runserver();
+    int selectloop();
 };
 
 #endif
