@@ -1,7 +1,11 @@
 #include <stdlib.h>
+#include "msg.h"
 
 #ifndef SERVER_H
 #define SERVER_H
+
+#define STD_FD 3
+
 class ChatServer
 {
 public:
@@ -9,10 +13,8 @@ public:
     int run();
 
 private:
-    const static int BUFFSIZE = 1024;
-
     int listener;
-    char clientMsg[BUFFSIZE];
+    Message clientMsg;
     fd_set master;
     int fd_max;
 

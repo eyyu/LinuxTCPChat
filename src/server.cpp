@@ -1,4 +1,3 @@
-#define STD_FD 3
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,9 +7,10 @@
 #include <sys/param.h>
 
 #include "inc/a3defs.h"
-//#include "inc/msg.h"
+#include "inc/msg.h"
 #include "inc/server.h"
 #include "inc/wrapper.h"
+
 
 
 using namespace std;
@@ -39,7 +39,6 @@ int ChatServer::runserver()
     server.sin_addr.s_addr = htonl(INADDR_ANY);
 
     bindSocket(listener, server);
-    cout << "Socket Bound";
 
     listenSock(listener);
 
@@ -73,7 +72,7 @@ int ChatServer::selectloop()
                 }
                 else
                 {
-                    nBytes = rcv(listener, clientMsg, BUFFSIZE);
+                    nBytes = rcv(listener, (char *)&clientMsg, MSG_SIZE);
                     if(nBytes == 0)
                     {
                         close(i);
@@ -87,7 +86,7 @@ int ChatServer::selectloop()
                             {
                                 if( j != listener && j != i)
                                 {
-                                    snd( j, clientMsg, nBytes);
+                                    snd( j, (char *)&clientMsg, MSG_SIZE);
                                 }
                             }
                         }
