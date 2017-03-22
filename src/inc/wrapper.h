@@ -15,6 +15,7 @@ int acceptSock(int listenSock);
 inline int setResuseAddr(int sock);
 inline int addToMcastGroup(int sock, ip_mreq & mreq);
 inline int rmvFromMcastGroup(int sock, ip_mreq & mreq);
+int connectSocket(int sock, const char * port, const char * ipaddr);
 int selectSock(int numfd, fd_set * readset);
 int sndAllClients(int sock /*, array of clients*/);
 int snd(int sock, char * sbuff, int blen);
