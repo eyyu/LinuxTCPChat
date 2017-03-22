@@ -66,6 +66,7 @@ void Client::Run()
     printf("\t\tIP Address: %s\n", inet_ntop(hp->h_addrtype, *pptr, str, sizeof(str)));
 
     connected = true;
+    ui->listWidget->addItem("Connected!");
 
     std::thread recvThread(&Client::RecvFunc, this);
     recvThread.detach();
@@ -76,7 +77,7 @@ void Client::RecvFunc()
     while (connected)
     {
         QString result = Receive();
-        qDebug() << result;
+        ui->listWidget->addItem(result);
     }
 }
 

@@ -23,6 +23,9 @@
       <height>25</height>
      </rect>
     </property>
+    <property name="placeholderText">
+     <string>Enter a message</string>
+    </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_2">
     <property name="geometry">
@@ -32,6 +35,12 @@
       <width>90</width>
       <height>25</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>luxes</string>
+    </property>
+    <property name="placeholderText">
+     <string>User name</string>
     </property>
    </widget>
    <widget class="QListWidget" name="listWidget">
