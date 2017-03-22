@@ -4,6 +4,7 @@
 #include <QString>
 #include <thread>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "inc/a3defs.h"
 #include "inc/msg.h"
@@ -17,6 +18,7 @@ Client::Client(const Ui::MainWindow* ui)
 {
     this->ui = ui;
     connected = false;
+    terminated = false;
 }
 
 void Client::Run()
@@ -34,10 +36,17 @@ void Client::Run()
     connectSocket(_socket, strPort, SERVER_IP.c_str());
     */
 
+    std::thread recvThread(&Client::RecvFunc, this);
+    recvThread.detach();
+}
+
+void Client::Connect(QString &serverIP, int port)
+{
     struct hostent* hp;
     struct sockaddr_in server;
     char** pptr;
     char str[16];
+
     // Create the socket
     if ((_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
@@ -46,8 +55,8 @@ void Client::Run()
     }
     bzero((char *)&server, sizeof(struct sockaddr_in));
     server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
-    if ((hp = gethostbyname(SERVER_IP.c_str())) == NULL)
+    server.sin_port = htons(port);
+    if ((hp = gethostbyname(serverIP.toStdString().c_str())) == NULL)
     {
         fprintf(stderr, "Unknown server address\n");
         exit(1);
@@ -55,7 +64,7 @@ void Client::Run()
     bcopy(hp->h_addr, (char *)&server.sin_addr, hp->h_length);
 
     // Connecting to the server
-    if (connect (_socket, (struct sockaddr *)&server, sizeof(server)) == -1)
+    if (connect(_socket, (struct sockaddr *)&server, sizeof(server)) == -1)
     {
         fprintf(stderr, "Can't connect to server\n");
         perror("connect");
@@ -67,17 +76,23 @@ void Client::Run()
 
     connected = true;
     ui->listWidget->addItem("Connected!");
+}
 
-    std::thread recvThread(&Client::RecvFunc, this);
-    recvThread.detach();
+void Client::Disconnect()
+{
+    connected = false;
+    close(_socket);
 }
 
 void Client::RecvFunc()
 {
-    while (connected)
+    while (!terminated)
     {
-        QString result = Receive();
-        ui->listWidget->addItem(result);
+        while (connected)
+        {
+            QString result = Receive();
+            ui->listWidget->addItem(result);
+        }
     }
 }
 
