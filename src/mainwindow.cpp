@@ -22,6 +22,9 @@
 -- NOTES:
 -- This class represents the main window for the client program.
 ------------------------------------------------------------------------------*/
+#include <iostream>
+#include <fstream>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -53,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit_msg, SIGNAL(returnPressed()), this, SLOT(EnterMsgHandler()));
     connect(ui->connectBtn, SIGNAL(clicked(bool)), this, SLOT(ClickConnectBtn()));
     connect(ui->disconnectBtn, SIGNAL(clicked(bool)), this, SLOT(ClickDisconnectBtn()));
+    connect(ui->listWidget->model(), SIGNAL(rowsInserted(QModelIndex,int,int)), ui->listWidget, SLOT(scrollToBottom()));
 }
 
 /*------------------------------------------------------------------------------
@@ -112,7 +116,7 @@ void MainWindow::EnterMsgHandler()
     ui->listWidget->addItem("Me:\n" + msg + "\n\n");
     client->SendMsg(msg, username);
     ui->lineEdit_msg->setText("");
-    ui->listWidget->scrollToBottom();
+    //ui->listWidget->scrollToBottom();
 }
 
 /*------------------------------------------------------------------------------
@@ -194,5 +198,16 @@ MainWindow::~MainWindow()
 {
     client->terminated = true;
     client->connected = false;
+    QString history = "";
+    for(int i = 0; i < ui->listWidget->count(); ++i)
+    {
+        QListWidgetItem* item = ui->listWidget->item(i);
+        history += item->text();
+        history += "\n";
+    }
+
+    std::ofstream logFile("log.txt");
+    logFile << history.toStdString();;
+    logFile.close();
     delete ui;
 }
