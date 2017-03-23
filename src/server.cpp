@@ -161,7 +161,6 @@ int ChatServer::selectloop()
     while(true)
     {
         read_fds = master; // master is a private data member
-
         selectSock(fd_max+1, &read_fds); // wrapper function
 
         for (int i = 0; i <= fd_max; ++i)
@@ -178,6 +177,7 @@ int ChatServer::selectloop()
                 }
                 else // otheriwse must be a socket to rcv from
                 {
+                    memset(&clientMsg, 0, MSG_SIZE);
                     nBytes = rcv(i, (char *)&clientMsg, MSG_SIZE);
                     if(nBytes == 0)
                     {
