@@ -1,3 +1,33 @@
+/*------------------------------------------------------------------------------
+-- SOURCE FILE: client.cpp - Client Class
+--
+-- PROGRAM: LinuxChat
+--
+-- FUNCTIONS:
+-- void Run();
+-- void RecvFunc();
+-- void SendMsg(QString& msg, QString& username);
+-- void Connect(QString& serverIP, int port);
+-- void Disconnect();
+-- PRIVATE:
+-- QString Receive();
+--
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- 1.0 Mar.19.17 - Created Class
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- NOTES:
+-- This client class runs and creates a receive thread that keeps
+-- reading messages from the server.
+-- It connects the server with the server ip and port that user entered.
+------------------------------------------------------------------------------*/
+
 #include <arpa/inet.h>
 #include <QObject>
 #include <QDebug>
@@ -12,34 +42,87 @@
 #include "inc/wrapper.h"
 #include "ui_mainwindow.h"
 
-const std::string Client::SERVER_IP = "142.232.153.216";
-
+/*------------------------------------------------------------------------------
+-- FUNCTION: Client
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: Client::Client(const Ui::MainWindow* ui)
+--
+--
+-- NOTES:
+-- The constructor.
+--------------------------------------------------------------------------*/
 Client::Client(const Ui::MainWindow* ui)
 {
+    _socket = -1;
     this->ui = ui;
     connected = false;
     terminated = false;
+
+    ui->connectBtn->setEnabled(true);
+    ui->lineEdit_ip->setEnabled(true);
+    ui->lineEdit_port->setEnabled(true);
+
+    ui->disconnectBtn->setEnabled(false);
+    ui->lineEdit_username->setEnabled(false);
+    ui->lineEdit_msg->setEnabled(false);
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: Run
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: void Client::Run()
+--
+-- RETURNS:
+-- void
+--
+-- NOTES:
+-- This creates a receiving thread.
+--------------------------------------------------------------------------*/
 void Client::Run()
 {
-    /*_socket = makeSocket();
-
-    sockaddr_in server;
-    memset(&server, 0 , sizeof(sockaddr_in));
-    server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
-    server.sin_addr.s_addr = inet_addr(Client::SERVER_IP.c_str());
-
-    char strPort[32];
-    sprintf(strPort, "%d", PORT);
-    connectSocket(_socket, strPort, SERVER_IP.c_str());
-    */
-
     std::thread recvThread(&Client::RecvFunc, this);
     recvThread.detach();
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: Connect
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: void Client::Connect(QString &serverIP, int port)
+--
+-- RETURNS:
+-- void
+--
+-- NOTES:
+-- This connects to the server with
+-- the server ip and port that user entered.
+--------------------------------------------------------------------------*/
 void Client::Connect(QString &serverIP, int port)
 {
     struct hostent* hp;
@@ -75,15 +158,76 @@ void Client::Connect(QString &serverIP, int port)
     printf("\t\tIP Address: %s\n", inet_ntop(hp->h_addrtype, *pptr, str, sizeof(str)));
 
     connected = true;
+
     ui->listWidget->addItem("Connected!");
+
+    ui->connectBtn->setEnabled(false);
+    ui->lineEdit_ip->setEnabled(false);
+    ui->lineEdit_port->setEnabled(false);
+
+    ui->disconnectBtn->setEnabled(true);
+    ui->lineEdit_username->setEnabled(true);
+    ui->lineEdit_msg->setEnabled(true);
 }
 
+
+/*------------------------------------------------------------------------------
+-- FUNCTION: Disconnect
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: void Client::Disconnect()
+--
+-- RETURNS:
+-- void
+--
+-- NOTES:
+-- This closes the socket to disconnect to the server.
+--------------------------------------------------------------------------*/
 void Client::Disconnect()
 {
     connected = false;
+
     close(_socket);
+
+    ui->listWidget->addItem("Disconnected");
+
+    ui->connectBtn->setEnabled(true);
+    ui->lineEdit_ip->setEnabled(true);
+    ui->lineEdit_port->setEnabled(true);
+
+    ui->disconnectBtn->setEnabled(false);
+    ui->lineEdit_username->setEnabled(false);
+    ui->lineEdit_msg->setEnabled(false);
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: RecvFunc
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: void Client::RecvFunc()
+--
+-- RETURNS:
+-- void
+--
+-- NOTES:
+-- This is for a receive thread, keeps reading a message from the server.
+--------------------------------------------------------------------------*/
 void Client::RecvFunc()
 {
     while (!terminated)
@@ -92,47 +236,84 @@ void Client::RecvFunc()
         {
             QString result = Receive();
             ui->listWidget->addItem(result);
+            //ui->listWidget->scrollToBottom();
         }
     }
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: SendMsg
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: void Client::SendMsg(QString& msg, QString& username)
+--
+-- RETURNS:
+-- void
+--
+-- NOTES:
+-- This sends a message to the server.
+--------------------------------------------------------------------------*/
 void Client::SendMsg(QString& msg, QString& username)
 {
     Message sendMsg;
     strncpy(sendMsg.msg, msg.toStdString().c_str(), MAX_MSG_SIZE);
     strncpy(sendMsg.username, username.toStdString().c_str(), MAX_USERNAME_SIZE);
-    int bytesToSend = sizeof(Message);
-    char sendBuff[bytesToSend];
-    memcpy(sendBuff, &sendMsg.header, sizeof(int));
-    memcpy(sendBuff + sizeof(int), sendMsg.username, sizeof(MAX_USERNAME_SIZE));
-    memcpy(sendBuff + sizeof(int) + sizeof(MAX_USERNAME_SIZE), sendMsg.msg, sizeof(MAX_MSG_SIZE));
-    snd(_socket, sendBuff, bytesToSend);
+    int bytesToSend = sizeof(sendMsg);
+    snd(_socket, reinterpret_cast<char *>(&sendMsg), bytesToSend);
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: Receive
+--
+-- DATE: Mar. 22, 2017
+--
+-- REVISIONS:
+-- Version, Date and Description
+--
+-- DESIGNER: Jamie Lee
+--
+-- PROGRAMMER: Jamie Lee
+--
+-- INTERFACE: QString Client::Receive()
+--
+-- RETURNS:
+-- QString
+--
+-- NOTES:
+-- This obtains a message from the server.
+--------------------------------------------------------------------------*/
 QString Client::Receive()
 {
-    int bytesRead;
-    int bytesToRead = sizeof(Message);
-    char *message = (char *) malloc(bytesToRead);
-    while((bytesRead = rcv(_socket, message, bytesToRead)) < bytesToRead)
+    int bytesRead, bytesToRead = MSG_SIZE;
+    Message recvmsg;
+    char * p =  reinterpret_cast<char *>(&recvmsg);
+    while((bytesRead = rcv(_socket, p, MSG_SIZE)) < bytesToRead)
     {
         //printf("Recv\n");
         if(bytesRead < 0)
         {
             qDebug() << "recv() failed";
-            free(message);
             return "";
         }
         if(bytesRead == 0)
         {
             printf("Server has closed the socket\n");
-            free(message);
             return "";
         }
-        message += bytesRead;
+        p += bytesRead;
         bytesToRead -= bytesRead;
     }
-    QString returnMessage(message);
-    free(message);
+    QString returnMessage(recvmsg.username);
+    returnMessage.append(":\n");
+    returnMessage.append(recvmsg.msg);
+    returnMessage.append("\n\n");
     return returnMessage;
 }
