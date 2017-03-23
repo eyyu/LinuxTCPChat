@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
--- SOURCE FILE: server.cpp - Server Class
+-- SOURCE FILE: server.h - Server Class
 --
 -- PROGRAM: LinuxChat
 --

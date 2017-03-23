@@ -4,8 +4,10 @@
 -- PROGRAM: LinuxChat
 --
 -- FUNCTIONS:
--- list all functions here!
--- returnType funcName (funcParams)
+-- int run ( void )
+-- PRIVATE:
+-- int runserver ( void )
+-- int selectloop ( void )
 --
 --
 -- DATE: Mar. 22, 2017
